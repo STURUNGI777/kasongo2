@@ -22,7 +22,7 @@ pip3 install pysocks
 Clone the repository or download the script manually.  
 
 ```bash
-git clone https://github.com/your-repo/kasongo2.git
+git clone https://github.com/STURUNGI777/kasongo2.git
 cd kasongo2
 ```
 
